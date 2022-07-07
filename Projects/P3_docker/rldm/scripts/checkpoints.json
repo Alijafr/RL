@@ -1,0 +1,5 @@
+{
+        "Checkpoint 1": ["PPO", "/mnt/logs/baselines/baseline_1/checkpoint_0/checkpoint-0"],
+        "Checkpoint 2": ["PPO", "/mnt/logs/baselines/baseline_2/checkpoint_0/checkpoint-0"],
+        "Checkpoint 3": ["PPO", "/mnt/logs/baselines/baseline_3/checkpoint_0/checkpoint-0"]
+}
