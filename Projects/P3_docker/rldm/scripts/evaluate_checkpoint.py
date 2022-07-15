@@ -242,8 +242,8 @@ if __name__ == '__main__':
     # Accumulate data for each checkpoint
     data = {'Checkpoint':[], 'Win Rate':[]}
     for name, check in checkpoints.items():
-        args.algorithm = check[0]
-        args.checkpoint = check[1]
+        #args.algorithm = check[0]
+        #args.checkpoint = check[1]
         config = {}
         config_dir = os.path.dirname(args.checkpoint)
         config_path = os.path.join(config_dir, "../params.pkl")
