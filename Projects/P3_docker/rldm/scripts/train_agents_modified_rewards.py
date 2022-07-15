@@ -32,6 +32,92 @@ from rldm.utils.collection_tools import deep_merge
 
 from gfootball.env.wrappers import CheckpointRewardWrapper
 
+# def reward_modified(self,reward):
+#     '''
+#     o['active'] => 1 or 2 
+#     '''
+#     #change checkpoints to only 4
+#     #self._num_checkpoints = 4
+    
+#     #assuming max of 500 steps 
+#     passing_rewards = 0.002 
+#     shoting_rewards = 0.1
+#     not_owning_ball_team = -0.001
+#     owning_ball = 0.001
+#     observation = self.env.unwrapped.observation()
+#     actions = self.env.unwrapped._get_actions()
+#     #print(observation)
+#     if observation is None:
+#         return reward
+
+#     assert len(reward) == len(observation)
+
+#     for rew_index in range(len(reward)):
+#         o = observation[rew_index]
+#         a = actions[rew_index]
+#         if reward[rew_index] == 1: #scoring a goal
+#             reward[rew_index] += self._checkpoint_reward * (
+#                 self._num_checkpoints -
+#                 self._collected_checkpoints.get(rew_index, 0))
+#             self._collected_checkpoints[rew_index] = self._num_checkpoints
+#             #add extra points to compensate for the extra postive rewards
+#             reward[rew_index] += 0.5
+#             continue
+        
+        
+#         #check if the right team does own the ball, this should be the first objective in the game
+#         if o['ball_owned_team'] != 0:
+#             #reward[rew_index] += not_owning_ball_team
+#             #player need to get closer to get the ball 
+#             player_pos = o['right_team'][o['active']]
+#             player_ball_dist = ((o['ball'][0] - player_pos[0]) ** 2 + (o['ball'][1]-player_pos[1]) ** 2) ** 0.5
+#             reward[rew_index] += player_ball_dist*not_owning_ball_team
+#         else:
+#             #they should positive reward for owning the ball too
+#             reward[rew_index] += owning_ball
+            
+        
+        
+#         # Check if the active player has the ball.
+#         if ('ball_owned_team' not in o or
+#           o['ball_owned_team'] != 0 or
+#           'ball_owned_player' not in o or
+#           o['ball_owned_player'] != o['active']):
+#             continue
+#         #now, we know that the active player has the ball
+#         #reward passing if the second player is closer to goal
+#         #reward shooting if active player is near the goal
+#         passing_thre = 0.05
+#         position_second_player = o['right_team'][1 if o['active']==2 else 2]
+#         dist_second_player = ((position_second_player[0] - 1) ** 2 + position_second_player[1] ** 2) ** 0.5
+#         d = ((o['ball'][0] - 1) ** 2 + o['ball'][1] ** 2) ** 0.5 #ball dist to goal (the active player too)
+#         player_distances = ((o['ball'][0] - position_second_player[0]) ** 2 + (o['ball'][1]-position_second_player[1]) ** 2) ** 0.5
+#         #if the ball is very close, shooting would be better than passing
+#         if dist_second_player + passing_thre < d and d > 0.3: 
+#             if player_distances < 0.2 and a == 11: #short pass when they are near each other
+#                 reward[rew_index] += passing_rewards
+#             elif player_distances > 0.2 and (a == 9 or a==10):
+#                 reward[rew_index] += passing_rewards
+#         #now check if the ball is near target, then rewarding shotting 
+#         if d < 0.4 and a ==12:
+#             reward[rew_index] += shoting_rewards
+            
+
+#         # Collect the checkpoints.
+#         # We give reward for distance 1 to 0.2.
+#         while (self._collected_checkpoints.get(rew_index, 0) <
+#              self._num_checkpoints):
+#             if self._num_checkpoints == 1:
+#                 threshold = 0.99 - 0.8
+#             else:
+#                 threshold = (0.99 - 0.8 / (self._num_checkpoints - 1) *
+#                            self._collected_checkpoints.get(rew_index, 0))
+#             if d > threshold:
+#                 break
+#             reward[rew_index] += self._checkpoint_reward
+#             self._collected_checkpoints[rew_index] = (
+#                 self._collected_checkpoints.get(rew_index, 0) + 1)
+#     return reward
 def reward_modified(self,reward):
     '''
     o['active'] => 1 or 2 
@@ -40,10 +126,11 @@ def reward_modified(self,reward):
     #self._num_checkpoints = 4
     
     #assuming max of 500 steps 
-    passing_rewards = 0.002 
-    shoting_rewards = 0.1
-    not_owning_ball_team = -0.001
-    owning_ball = 0.001
+    passing_rewards = 0.02 
+    shoting_rewards = 0.2
+    not_owning_ball_team = -0.015
+    owning_ball = 0.0015
+    
     observation = self.env.unwrapped.observation()
     actions = self.env.unwrapped._get_actions()
     #print(observation)
@@ -61,7 +148,7 @@ def reward_modified(self,reward):
                 self._collected_checkpoints.get(rew_index, 0))
             self._collected_checkpoints[rew_index] = self._num_checkpoints
             #add extra points to compensate for the extra postive rewards
-            reward[rew_index] += 0.5
+            reward[rew_index] += 1.0
             continue
         
         
@@ -73,8 +160,9 @@ def reward_modified(self,reward):
             player_ball_dist = ((o['ball'][0] - player_pos[0]) ** 2 + (o['ball'][1]-player_pos[1]) ** 2) ** 0.5
             reward[rew_index] += player_ball_dist*not_owning_ball_team
         else:
-            #they should positive reward for owning the ball too
-            reward[rew_index] += owning_ball
+            #postive rewards for the player owning the ball
+            if  o['ball_owned_player'] == o['active']:
+                reward[rew_index] += owning_ball
             
         
         
@@ -84,6 +172,7 @@ def reward_modified(self,reward):
           'ball_owned_player' not in o or
           o['ball_owned_player'] != o['active']):
             continue
+
         #now, we know that the active player has the ball
         #reward passing if the second player is closer to goal
         #reward shooting if active player is near the goal
@@ -93,7 +182,7 @@ def reward_modified(self,reward):
         d = ((o['ball'][0] - 1) ** 2 + o['ball'][1] ** 2) ** 0.5 #ball dist to goal (the active player too)
         player_distances = ((o['ball'][0] - position_second_player[0]) ** 2 + (o['ball'][1]-position_second_player[1]) ** 2) ** 0.5
         #if the ball is very close, shooting would be better than passing
-        if dist_second_player + passing_thre < d and d > 0.3: 
+        if dist_second_player + passing_thre < d and d > 0.5: 
             if player_distances < 0.2 and a == 11: #short pass when they are near each other
                 reward[rew_index] += passing_rewards
             elif player_distances > 0.2 and (a == 9 or a==10):
@@ -117,8 +206,9 @@ def reward_modified(self,reward):
             reward[rew_index] += self._checkpoint_reward
             self._collected_checkpoints[rew_index] = (
                 self._collected_checkpoints.get(rew_index, 0) + 1)
+    #save the old observation 
+    # self.old_obs = observation
     return reward
-
 CheckpointRewardWrapper.reward = reward_modified
 
 EXAMPLE_USAGE = """
