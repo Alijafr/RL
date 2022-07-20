@@ -101,7 +101,7 @@ def main(n_cpus, n_gpus, env_name,
     obs_space, act_space = ft.get_obs_act_space(env_name)
 
     def gen_policy(idx):
-        return (None, obs_space[f'player_{idx}'], act_space[f'player_{idx}'], {})
+        return (None, obs_space[f'player_{idx}'], act_space[f'player_{idx}'], {"agent_id":idx})
 
     policies = {
         'agent_{}'.format(idx): gen_policy(idx) for idx in range(n_policies)
@@ -135,11 +135,11 @@ def main(n_cpus, n_gpus, env_name,
         'multiagent': default_multiagent,
     }
 
-    if use_tune_config:
-        tune_config = {
-            'multiagent': tune.choice([default_multiagent, shared_multiagent]),
-        }
-        config = deep_merge(config, tune_config)
+    # if use_tune_config:
+    #     tune_config = {
+    #         'multiagent': tune.choice([default_multiagent, shared_multiagent]),
+    #     }
+    #     config = deep_merge(config, tune_config)
 
     if use_callbacks:
         config['callbacks'] = ft.FootballCallbacks
@@ -168,9 +168,9 @@ def main(n_cpus, n_gpus, env_name,
                 "log_level": "ERROR",
 
                 # === Environment ===
-                "env_config": {
-                    "scenario_name": "simple",
-                },
+                # "env_config": {
+                #     "scenario_name": "simple",
+                # },
                
                 # --- Exploration ---
                 "tau": 0.01,
