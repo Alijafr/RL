@@ -1,0 +1,2 @@
+ray[default]==1.6
+ray[rllib]==1.6
